@@ -29,10 +29,12 @@
 	NSOutputStream* oStream;
 	NSMutableData* _rdata;
 	NSMutableData* _wdata;
+	
+	// a dictionary mapping RPC call numbers to protocol requests
+	// calls are removed when they have been handled
 	NSMutableDictionary* pendingCalls;
 	
 	NSNumber* bytesRead;
-	NSString* streamState;
 	int userId;
 	NSString* password;
 	
@@ -40,6 +42,7 @@
 	
 	int connectionState;
 	int sessionState;
+	// readParseOffset up until which data in the buffer has already been read (and acted upon)
 	int readParseOffset;
 	int byteIndex;
 	int callSequence;

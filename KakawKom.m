@@ -3,7 +3,7 @@
 //  KakawKOM
 //
 //  Created by Rasmus Sten on 2010-05-07.
-//  Copyright 2010 Bricole. All rights reserved.
+//  Copyright 2010 Rasmus Sten <rasmus@dll.nu>. All rights reserved.
 //
 
 #import "KakawKom.h"
@@ -159,8 +159,7 @@
 - (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode {
 	NSLog(@"handleEvent");
 	eventCount++;
-	streamState = [NSString stringWithFormat:@"count: %d, stream: %@", eventCount, stream];
-	NSLog(@"%@", streamState);
+	NSLog(@"count: %d, stream: %@", eventCount, stream);
 	if(!_wdata) {
 		_wdata = [[NSMutableData data] retain];
 	}
@@ -316,6 +315,8 @@
 	}
 }
 
+// will start reading at readParseOffset, will return nil if the object given doesn't
+// have all the data
 - (NSString*)readHollerith:(NSData*)data {
 	int l0 = [data length];
 	
@@ -344,6 +345,7 @@
 	uint8_t buf2[length];
 	NSRange r2 = { readParseOffset, length };
 	[data getBytes:buf2 range:r2];
+	// assumes iso-8859-1 for the hollerith contents
 	NSString* s2 = [[NSString alloc] initWithBytes:buf2 length:length encoding:NSISOLatin1StringEncoding];
 	readParseOffset += length;
 	//NSLog(@"readHollerith: %@ readParseOffset=%d", s2, readParseOffset);
