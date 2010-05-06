@@ -171,7 +171,11 @@
 					NSHost* localhost = [NSHost currentHost];
 					NSMutableData* d = [[NSMutableData data] retain];
 					[self sdcat:d asciiString:@"A"];
-					[d appendData:[self hollerithFromString:[NSString stringWithFormat:@"%@%%%@", @"rasmus", [localhost name]]]];
+					
+					char* userenv = getenv("USER");
+					NSString* userstring = [NSString stringWithCString:userenv encoding:NSASCIIStringEncoding];
+					
+					[d appendData:[self hollerithFromString:[NSString stringWithFormat:@"%@%%%@", userstring, [localhost name]]]];
 					[self sdcat:d asciiString:@"\n"];
 					[self logData:d];
 					[_wdata setData:d];
