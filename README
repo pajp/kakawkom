@@ -3,3 +3,6 @@ KakawKOM
 A LysKOM framework for Mac OS X.
 
 Copyright © 2010, Rasmus Sten <rasmus@dll.nu>
+
+For instructions on how to add a framework to an application:
+  http://developer.apple.com/mac/library/documentation/MacOSX/Conceptual/BPFrameworks/Tasks/CreatingFrameworks.html
