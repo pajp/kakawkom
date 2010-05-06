@@ -107,11 +107,6 @@
 	return seqno;
 }
 
-/*
- - (NSString*)stringFromHollerith:(NSData *) data {
- 
- }
- */
 - (NSData*)hollerithFromString:(NSString *) string {
 	//NSLog(@"hollerithFromString:string=%@", string);
 	NSMutableData* _d = [[NSMutableData data] retain];
@@ -181,10 +176,7 @@
 					[self logData:d];
 					[_wdata setData:d];
 				}
-				//[_wdata setData:[greeting dataUsingEncoding:NSASCIIStringEncoding]];
-				//NSLog(@"some more data: %@", [greeting dataUsingEncoding:NSASCIIStringEncoding]);
-				//NSLog(@"data object: %@", _wdata);
-				
+
 				
 			} else if (connectionState == KOM_HANDSHAKE_RECEIVED) {
 				if (byteIndex == [_wdata length]) {
@@ -218,7 +210,6 @@
 					NSLog(@"I gots datas: %d bytes", len);
 					NSMutableData* srvGreeting = [NSMutableData data];
 					[srvGreeting setData:[@"LysKOM\n" dataUsingEncoding:NSASCIIStringEncoding]];
-					//NSString* foo = [[NSString alloc] initWithBytes:[_rdata mutableBytes] length:[bytesRead intValue] encoding:NSASCIIStringEncoding];
 					NSLog(@"raw data: %@", _rdata);
 					if ([_rdata isEqualToData:srvGreeting]) {
 						NSLog(@"LysKOM reply received from server (yay)");
@@ -239,7 +230,6 @@
 				len = [iStream read:buf maxLength:1024];
 				NSLog(@"Read %d bytes", len);
 				if (len) {
-					//[_rdata setLength:[bytesRead intValue]+len];
 					[_rdata appendBytes:(const void*) buf length:len];
 					NSLog(@"Received data: %@", _rdata);
 					bytesRead = [NSNumber numberWithInt:[bytesRead intValue]+len];
@@ -251,7 +241,7 @@
 					uint8_t databuf[rlen];
 					BOOL haveAToken = NO;
 					[_rdata getBytes:databuf length:rlen];
-					// check if we have either a space and a linefeed. That means we have a first
+					// check if we have either a space or a linefeed. That means we have a first
 					// token to parse
 					for (int i=0; i < rlen; i++) {
 						if ((databuf[i] == '\n') || (databuf[i] == ' ')) {
@@ -429,7 +419,5 @@
 	
 	return [num intValue];
 }
-
-
 
 @end
