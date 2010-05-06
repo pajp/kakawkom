@@ -173,8 +173,8 @@
 					[self sdcat:d asciiString:@"A"];
 					
 					char* userenv = getenv("USER");
+					if (userenv == NULL) userenv = "unknown";
 					NSString* userstring = [NSString stringWithCString:userenv encoding:NSASCIIStringEncoding];
-					
 					[d appendData:[self hollerithFromString:[NSString stringWithFormat:@"%@%%%@", userstring, [localhost name]]]];
 					[self sdcat:d asciiString:@"\n"];
 					[self logData:d];
