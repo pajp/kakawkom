@@ -33,16 +33,16 @@
 		[NSStream getStreamsToHost:host port:4894 inputStream:&iStream outputStream:&oStream];
 		[iStream retain];
 		[oStream retain];		
-        [iStream setDelegate:self];
-        [oStream setDelegate:self];
-        [iStream scheduleInRunLoop:[NSRunLoop currentRunLoop]
+		[iStream setDelegate:self];
+		[oStream setDelegate:self];
+		[iStream scheduleInRunLoop:[NSRunLoop currentRunLoop]
 						   forMode:NSDefaultRunLoopMode];
-        [oStream scheduleInRunLoop:[NSRunLoop currentRunLoop]
+		[oStream scheduleInRunLoop:[NSRunLoop currentRunLoop]
 						   forMode:NSDefaultRunLoopMode];
-        [iStream open];
-        [oStream open];
-    }
-    return self;
+		[iStream open];
+		[oStream open];
+	}
+	return self;
 }
 
 - (void)logData:(NSData *) data {
