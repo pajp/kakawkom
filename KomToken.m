@@ -11,12 +11,14 @@
 
 @implementation KomToken
 
+// init this KomToken, backed by an NSMutableData object
 - (id) init {
 	self = [super init];
 	data = [NSMutableData data];
 	return self;
 }
 
+// initialize this KomToken, backed by the specified data object
 - (id) initWithData:(NSData*) d {
 	self = [super init];
 	data = d;
