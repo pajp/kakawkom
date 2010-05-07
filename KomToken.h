@@ -12,7 +12,7 @@
 @interface KomToken : NSObject {
 	NSData* data;
 }
-
++ (KomToken*)tokenFromData:(NSData*) data readOffset:(int)offset;
 - (id) initWithData:(NSData*)d;
 - (NSData*) data;
 

@@ -29,6 +29,11 @@
 	[_d appendBytes:[s bytes] length:[s length]];
 	return h;
 }
+
++ (KomToken*) tokenFromData:(NSData *)data readOffset:(int)offset {
+	return [Hollerith hollerithFromData:data offset:offset];
+}
+
 // will start reading at offset, will return nil if the object given doesn't
 // have all the data
 + (Hollerith*)hollerithFromData:(NSData*)data offset:(int)readParseOffset {

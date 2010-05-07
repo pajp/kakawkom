@@ -56,7 +56,7 @@
 - (BOOL)send;
 - (void)logData:(NSData *)data;
 - (int)rpcSend:(int)call parameters:(NSData*)parameters;
-- (int) parseRpcNum:(NSData *) data;
+- (int)parseRpcNum:(NSData *) data;
 - (BOOL)handleRpcReply:(BOOL)result requestData:(NSData*)data;
 - (void)separator:(NSData *)data;
 - (void)sdcat:(NSMutableData *)data asciiString:(NSString *)string;
