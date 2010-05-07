@@ -7,7 +7,7 @@
 //
 
 #import "KakawKom.h"
-
+#include "Hollerith.h"
 
 @implementation KakawKom
 
@@ -63,7 +63,7 @@
 
 - (void)login {
 	NSLog(@"login");
-	NSData* pwd = [self hollerithFromString:password];
+	NSData* pwd = [[Hollerith hollerithFromString:password] data];
 	int person = userId;
 	NSLog(@"would login with password hollerith: %@", pwd);
 	NSLog(@"which in English would be %@", [[NSString alloc] initWithBytes:[pwd bytes] length:[pwd length] encoding:NSISOLatin1StringEncoding]);
@@ -77,9 +77,9 @@
 
 - (void) setClientVersion:(NSString*)name version:(NSString*)version {
 	NSMutableData* d = [[NSMutableData data] retain];
-	[d appendData:[self hollerithFromString:name]];
+	[d appendData:[[Hollerith hollerithFromString:name] data]];
 	[self separator:d];
-	[d appendData:[self hollerithFromString:version]];
+	[d appendData:[[Hollerith hollerithFromString:version] data]];
 	[self rpcSend:KOM_set_client_version parameters:d];
 }
 
@@ -105,19 +105,6 @@
 	NSNumber* seqnoobj = [NSNumber numberWithInt:seqno];
 	[pendingCalls setObject:callobj forKey:seqnoobj];
 	return seqno;
-}
-
-- (NSData*)hollerithFromString:(NSString *) string {
-	//NSLog(@"hollerithFromString:string=%@", string);
-	NSMutableData* _d = [[NSMutableData data] retain];
-	// convert to iso-8859-1 string
-	NSMutableData* s = [[NSMutableData data] retain];
-	[s setData:[string dataUsingEncoding:NSISOLatin1StringEncoding]];
-	NSString* lstr = [NSString stringWithFormat:@"%dH", [s length]];
-	NSData* lstrdata = [lstr dataUsingEncoding:NSASCIIStringEncoding];
-	[_d appendBytes:[lstrdata bytes] length:[lstrdata length]];
-	[_d appendBytes:[s bytes] length:[s length]];
-	return _d;
 }
 
 - (BOOL)send {
@@ -175,7 +162,7 @@
 					char* userenv = getenv("USER");
 					if (userenv == NULL) userenv = "unknown";
 					NSString* userstring = [NSString stringWithCString:userenv encoding:NSASCIIStringEncoding];
-					[d appendData:[self hollerithFromString:[NSString stringWithFormat:@"%@%%%@", userstring, [localhost name]]]];
+					[d appendData:[[Hollerith hollerithFromString:[NSString stringWithFormat:@"%@%%%@", userstring, [localhost name]]] data]];
 					[self sdcat:d asciiString:@"\n"];
 					[self logData:d];
 					[_wdata setData:d];
@@ -245,9 +232,23 @@
 					uint8_t databuf[rlen];
 					BOOL haveAToken = NO;
 					[_rdata getBytes:databuf length:rlen];
+					
+					// strip leading linefeeds
+					int i=0;
+					while (databuf[i] == '\n') {
+						NSLog(@"databuf[%d] is a newline", i);
+						i++;
+					}
+					if (i > 0) {
+						NSRange r = { i, rlen-i };
+						[_rdata setData:[_rdata subdataWithRange:r]];
+						rlen -= i;
+						[_rdata getBytes:databuf length:rlen];
+					}
+					
 					// check if we have either a space or a linefeed. That means we have a first
 					// token to parse
-					for (int i=0; i < rlen; i++) {
+					for (i=0; i < rlen; i++) {
 						if ((databuf[i] == '\n') || (databuf[i] == ' ')) {
 							haveAToken = YES;
 						}
@@ -282,13 +283,14 @@
 							if (readParseOffset < [_rdata length]-1) {
 								NSLog(@"readParseOffset: %d [_rdata length]: %d", readParseOffset, [_rdata length]);
 								NSRange r = { readParseOffset, [_rdata length] -  ((NSUInteger) readParseOffset) };
+								NSLog(@"range start: %d, range length: %d", r.location, r.length);
 								[_rdata setData:[_rdata subdataWithRange:r]];
 								readParseOffset = 0;
 								bytesRead = [NSNumber numberWithInt:r.length];
-								NSLog(@"Data only partially handled, %d bytes remaining", bytesRead);
+								NSLog(@"Data only partially handled, %d bytes remaining", [bytesRead intValue]);
 							} else {
 								[_rdata setLength:0];
-								bytesRead = 0;
+								bytesRead = [NSNumber numberWithInt:0];
 								NSLog(@"Data handled, clearing buffer.");
 							}
 						} else {
@@ -309,42 +311,15 @@
 	}
 }
 
-// will start reading at readParseOffset, will return nil if the object given doesn't
-// have all the data
-- (NSString*)readHollerith:(NSData*)data {
-	int l0 = [data length];
-	
-	uint8_t buf[l0];
-	(void)memcpy(buf, [data bytes], l0);
-	
-	int i=++readParseOffset;
-	//NSLog(@"readHollerith: initial readParseOffset=%d", readParseOffset);
-	while (i < [data length] && (buf[i] >= '0') && (buf[i] <= '9')) { i++; }
-	int l = i-readParseOffset;
-	//NSLog(@"readHollerith: i=%d, l=%d", i, l);
-	NSRange r = { readParseOffset, l };
-	uint8_t buf3[l];
-	[data getBytes:buf3 range:r];
-	NSString* s = [[NSString alloc] initWithBytes:buf3 length:l encoding:NSASCIIStringEncoding];
-	//NSLog(@"hollerith length: %@", s);
-	NSNumber* num = [[NSDecimalNumber alloc] initWithString:s];
-	int length = [num intValue];
-	readParseOffset += l+1; // 'H'
-	
-	if (readParseOffset + length > [data length]) {
-		NSLog(@"readHollerith: wanted to read a hollerith of %d bytes but buffer length is %d and readParseOffset is %d", length, [data length], readParseOffset);
-		return nil;
+- (NSString*)readHollerith:(NSData*)data  {
+	Hollerith* h = [Hollerith hollerithFromData:data offset:readParseOffset];
+	if (h != nil) {
+		readParseOffset += [[h data] length];
 	}
+	return [h string];
 	
-	uint8_t buf2[length];
-	NSRange r2 = { readParseOffset, length };
-	[data getBytes:buf2 range:r2];
-	// assumes iso-8859-1 for the hollerith contents
-	NSString* s2 = [[NSString alloc] initWithBytes:buf2 length:length encoding:NSISOLatin1StringEncoding];
-	readParseOffset += length;
-	//NSLog(@"readHollerith: %@ readParseOffset=%d", s2, readParseOffset);
-	return s2;
 }
+
 
 - (BOOL)handle_get_text:(BOOL)wasSuccessful requestData:(NSData*) data {
 	NSLog(@"handle_get_text: readParseOffset=%d", readParseOffset);
@@ -376,12 +351,16 @@
 					NSLog(@"Login OK, sending client version");
 					[self setClientVersion:@"Komkaw Cocoa OS X" version:@"0.0"];
 					NSLog(@"Client version sent, asking for a text");
-					[self getText:76232];
+					[self getText:18475754]; //a big text: 76232, a small text: 18475754
+					[self getText:76232]; //a big text: 76232, a small text: 18475754
+
+					
 				} else {
 					NSLog(@"Login failed!");
 				}
 				break;
 			case KOM_get_text:
+				readParseOffset++; // eat up ' '
 				handled = [self handle_get_text:wasSuccessful requestData:data];
 				break;
 			default:

@@ -10,6 +10,10 @@
 		3AB8085D11936F6300218BEC /* KakawKom.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB8085B11936F6300218BEC /* KakawKom.h */; };
 		3AB8085E11936F6300218BEC /* KakawKom.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB8085C11936F6300218BEC /* KakawKom.m */; };
 		3AB808E9119378CC00218BEC /* README in Resources */ = {isa = PBXBuildFile; fileRef = 3AB808E8119378CC00218BEC /* README */; };
+		3AB8091C1193842400218BEC /* KomToken.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB8091A1193842400218BEC /* KomToken.h */; };
+		3AB8091D1193842400218BEC /* KomToken.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB8091B1193842400218BEC /* KomToken.m */; };
+		3AB809221193844F00218BEC /* Hollerith.h in Headers */ = {isa = PBXBuildFile; fileRef = 3AB809201193844F00218BEC /* Hollerith.h */; };
+		3AB809231193844F00218BEC /* Hollerith.m in Sources */ = {isa = PBXBuildFile; fileRef = 3AB809211193844F00218BEC /* Hollerith.m */; };
 		8DC2EF530486A6940098B216 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
 		8DC2EF570486A6940098B216 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7B1FEA5585E11CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -23,6 +27,10 @@
 		3AB8085B11936F6300218BEC /* KakawKom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KakawKom.h; sourceTree = "<group>"; };
 		3AB8085C11936F6300218BEC /* KakawKom.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KakawKom.m; sourceTree = "<group>"; };
 		3AB808E8119378CC00218BEC /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		3AB8091A1193842400218BEC /* KomToken.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KomToken.h; sourceTree = "<group>"; };
+		3AB8091B1193842400218BEC /* KomToken.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KomToken.m; sourceTree = "<group>"; };
+		3AB809201193844F00218BEC /* Hollerith.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Hollerith.h; sourceTree = "<group>"; };
+		3AB809211193844F00218BEC /* Hollerith.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Hollerith.m; sourceTree = "<group>"; };
 		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8DC2EF5B0486A6940098B216 /* KakawKOM.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = KakawKOM.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D2F7E79907B2D74100F64583 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
@@ -82,8 +90,12 @@
 		08FB77AEFE84172EC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				3AB809201193844F00218BEC /* Hollerith.h */,
+				3AB809211193844F00218BEC /* Hollerith.m */,
 				3AB8085B11936F6300218BEC /* KakawKom.h */,
 				3AB8085C11936F6300218BEC /* KakawKom.m */,
+				3AB8091A1193842400218BEC /* KomToken.h */,
+				3AB8091B1193842400218BEC /* KomToken.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -122,6 +134,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3AB8085D11936F6300218BEC /* KakawKom.h in Headers */,
+				3AB8091C1193842400218BEC /* KomToken.h in Headers */,
+				3AB809221193844F00218BEC /* Hollerith.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +200,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				3AB8085E11936F6300218BEC /* KakawKom.m in Sources */,
+				3AB8091D1193842400218BEC /* KomToken.m in Sources */,
+				3AB809231193844F00218BEC /* Hollerith.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

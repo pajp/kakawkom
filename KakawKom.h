@@ -21,6 +21,7 @@
 #define KOM_get_text			25
 #define KOM_login				62
 #define KOM_set_client_version	69
+#define KOM_accept_async		80
 
 
 @interface KakawKom : NSObject <NSStreamDelegate> {
@@ -55,7 +56,6 @@
 - (BOOL)send;
 - (void)logData:(NSData *)data;
 - (int)rpcSend:(int)call parameters:(NSData*)parameters;
-- (NSData*)hollerithFromString:(NSString *) string;
 - (int) parseRpcNum:(NSData *) data;
 - (BOOL)handleRpcReply:(BOOL)result requestData:(NSData*)data;
 - (void)separator:(NSData *)data;
