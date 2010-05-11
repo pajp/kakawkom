@@ -14,6 +14,7 @@
 	int arrayLength;
 	NSArray* array;
 }
-
++(KomArray*)arrayFromArray:(NSArray *)a;
 -(void)setArray:(NSArray*)a;
+-(void)setArrayLength:(int)l;
 @end

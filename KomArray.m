@@ -13,7 +13,7 @@
 
 // reads an array from the server, assuming that it consists only of types
 // that does not contain any spaces
-+ (KomArray*)tokenFromData:(NSData*)data offset:(int)offset {
++ (KomArray*)arrayFromData:(NSData*)data offset:(int)offset {
 	int startOffset = offset;
 	KomInt* lengthToken = (KomInt*) [KomInt tokenFromData:data readOffset:offset];
 	int arrayLength = [lengthToken intValue];
@@ -26,8 +26,11 @@
 	memcpy(buf, [sdata bytes], [sdata length]);
 	
 	if (buf[0] == '*') {
-		// empty of length-informative array
-		return (KomArray*) [KomToken tokenFromData:[data subdataWithRange:NSMakeRange(startOffset, offset-startOffset)] readOffset:0];
+		// empty or length-informative array
+		KomArray* k = [KomArray new];
+		[k setData:[data subdataWithRange:NSMakeRange(startOffset, offset-startOffset)]];
+		[k setArrayLength:arrayLength];
+		return k;
 	}
 	
 	
@@ -37,12 +40,37 @@
 		[array addObject:t];
 		offset += [[t data] length] + 1;
 	}
-	
-	
-	KomArray* k = (KomArray*) [super tokenFromData:[data subdataWithRange:NSMakeRange(startOffset, offset-startOffset)] readOffset:0];
+		
+	KomArray* k = [[KomArray alloc] init];
+	[k setArrayLength:arrayLength];
 	[k setArray:array];
+	[k setData:[data subdataWithRange:NSMakeRange(startOffset, offset-startOffset)]];
 	return k;
 	
+}
+
++ (KomArray*)arrayFromArray:(NSArray*)a {
+	NSMutableData* prefix = [NSMutableData new];
+	NSData* suffix = [@"}" dataUsingEncoding:NSASCIIStringEncoding];
+	NSMutableData* d = [NSMutableData new];
+	[d retain];
+	uint8_t _space[] = { ' ' };
+	NSData* space = [NSData dataWithBytes:_space length:1];
+	
+	[prefix setData:[[NSString stringWithFormat:@"%d { ", [a count]] dataUsingEncoding:NSASCIIStringEncoding]];
+	[d appendData:prefix];
+	
+	for (KomToken* token in a) {
+		[d appendData:[token data]];
+		[d appendData:space];
+	}
+	[d appendData:suffix];
+	KomArray* k = [KomArray new];
+	[k setData:d];
+	[k setArray:a];
+	[k setArrayLength:[a count]];
+
+	return k;
 }
 
 - (void) setArray:(NSArray*) a {
@@ -50,6 +78,9 @@
 	arrayLength = [a count];
 }
 
+- (void) setArrayLength:(int)l {
+	arrayLength = l;
+}
 - (int) arrayLength {
 	return arrayLength;
 }

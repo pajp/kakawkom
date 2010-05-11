@@ -12,6 +12,8 @@
 
 @interface KomInt : KomToken {
 }
++ (KomInt*) intFromInt:(int)value;
++ (KomInt*) intFromData:(NSData *)data offset:(int)offset;
 - (int) intValue;
 
 @end

@@ -7,7 +7,6 @@
 //
 
 #import "KakawKom.h"
-#include "Hollerith.h"
 
 @implementation KakawKom
 
@@ -81,6 +80,11 @@
 	[self separator:d];
 	[d appendData:[[Hollerith hollerithFromString:version] data]];
 	[self rpcSend:KOM_set_client_version parameters:d];
+}
+
+- (void) acceptAsync:(NSArray*) numbers {
+	KomArray* k = [KomArray arrayFromArray:numbers];
+	[self rpcSend:KOM_accept_async parameters:[k data]];
 }
 
 - (void) sdcat:(NSMutableData*)data asciiString:(NSString*)string {
@@ -222,83 +226,11 @@
 				NSLog(@"Read %d bytes", len);
 				if (len) {
 					[_rdata appendBytes:(const void*) buf length:len];
-					NSLog(@"Received data: %@", _rdata);
-					bytesRead = [NSNumber numberWithInt:[bytesRead intValue]+len];
+					//NSLog(@"Received data: %@", _rdata);
+					bytesRead = [NSNumber numberWithInt:[bytesRead intValue]+len]; // bytesRead is the total number of bytes in the read buffer "_rdata"
 					NSString* string = [[NSString alloc] initWithBytes:[_rdata mutableBytes] length:[bytesRead intValue] encoding:NSISOLatin1StringEncoding];
-					NSLog(@"Received (bytesRead: %d): %@", [bytesRead intValue], string);
-					
-					// get the whole buffer for examination
-					unsigned int rlen = [_rdata length];
-					uint8_t databuf[rlen];
-					BOOL haveAToken = NO;
-					[_rdata getBytes:databuf length:rlen];
-					
-					// strip leading linefeeds
-					int i=0;
-					while (databuf[i] == '\n') {
-						NSLog(@"databuf[%d] is a newline", i);
-						i++;
-					}
-					if (i > 0) {
-						NSRange r = { i, rlen-i };
-						[_rdata setData:[_rdata subdataWithRange:r]];
-						rlen -= i;
-						[_rdata getBytes:databuf length:rlen];
-					}
-					
-					// check if we have either a space or a linefeed. That means we have a first
-					// token to parse
-					for (i=0; i < rlen; i++) {
-						if ((databuf[i] == '\n') || (databuf[i] == ' ')) {
-							haveAToken = YES;
-						}
-					}
-					NSLog(@"have a token: %d", haveAToken);
-					if (haveAToken) {
-						if ((databuf[0] == '%') && (databuf[1] == '%')) {
-							NSLog(@"Server says protocol error. We're doing something wrong.");
-							[_rdata setLength:0];
-							bytesRead = 0;
-							return;
-						}
-						BOOL handled = NO;
-						switch (databuf[0]) {
-							case '=':
-								handled = [self handleRpcReply:YES requestData: _rdata];
-								break;
-							case '%':
-								handled = [self handleRpcReply:NO requestData: _rdata];
-								break;
-							case ':':
-								NSLog(@"Asynchronous message");
-								readParseOffset = rlen;
-								handled = YES;
-								break;
-							default:
-								NSLog(@"Incomprehensible: %d", databuf[0]);
-								handled = YES;
-								break;
-						}
-						if (handled) {
-							if (readParseOffset < [_rdata length]-1) {
-								NSLog(@"readParseOffset: %d [_rdata length]: %d", readParseOffset, [_rdata length]);
-								NSRange r = { readParseOffset, [_rdata length] -  ((NSUInteger) readParseOffset) };
-								NSLog(@"range start: %d, range length: %d", r.location, r.length);
-								[_rdata setData:[_rdata subdataWithRange:r]];
-								readParseOffset = 0;
-								bytesRead = [NSNumber numberWithInt:r.length];
-								NSLog(@"Data only partially handled, %d bytes remaining", [bytesRead intValue]);
-							} else {
-								[_rdata setLength:0];
-								bytesRead = [NSNumber numberWithInt:0];
-								NSLog(@"Data handled, clearing buffer.");
-							}
-						} else {
-							NSLog(@"Data not handled, retaining buffer to get more data.");
-						}
-					} else {
-						NSLog(@"incomplete line received");
-					}
+					NSLog(@"Received (len: %d, total bytesRead: %d): \"%@\"", len, [bytesRead intValue], string);
+					[self treatReadBuffer];
 					
 				} else {
 					NSLog(@"NSStreamEventHasBytesAvailable but no buffer from input stream %@. Huh?", iStream);
@@ -310,6 +242,84 @@
         }
 	}
 }
+
+- (void) treatReadBuffer {
+	NSLog(@"treatReadBuffer");
+	// get the whole buffer for examination
+	unsigned int rlen = [_rdata length];
+	uint8_t databuf[rlen];
+	BOOL haveAToken = NO;
+	[_rdata getBytes:databuf length:rlen];
+	
+	// strip leading linefeeds
+	int i=0;
+	while (databuf[i] == '\n') {
+		NSLog(@"databuf[%d] is a newline", i);
+		i++;
+	}
+	if (i > 0) {
+		NSRange r = { i, rlen-i };
+		[_rdata setData:[_rdata subdataWithRange:r]];
+		rlen -= i;
+		[_rdata getBytes:databuf length:rlen];
+	}
+	
+	// check if we have either a space or a linefeed. That means we have a first
+	// token to parse
+	for (i=0; i < rlen; i++) {
+		if ((databuf[i] == '\n') || (databuf[i] == ' ')) {
+			haveAToken = YES;
+		}
+	}
+	NSLog(@"have a token: %d", haveAToken);
+	if (haveAToken) {
+		if ((databuf[0] == '%') && (databuf[1] == '%')) {
+			NSLog(@"Server says protocol error. We're doing something wrong.");
+			[_rdata setLength:0];
+			bytesRead = 0;
+			return;
+		}
+		BOOL handled = NO;
+		switch (databuf[0]) {
+			case '=':
+				handled = [self handleRpcReply:YES requestData: _rdata];
+				break;
+			case '%':
+				handled = [self handleRpcReply:NO requestData: _rdata];
+				break;
+			case ':':
+				NSLog(@"Asynchronous message");
+				handled = [self handleAsyncMessage:_rdata];
+				break;
+			default:
+				NSLog(@"Incomprehensible: %d", databuf[0]);
+				handled = YES;
+				break;
+		}
+		if (handled) {
+			if (readParseOffset < [_rdata length]-1) {
+				NSLog(@"readParseOffset: %d [_rdata length]: %d", readParseOffset, [_rdata length]);
+				NSRange r = { readParseOffset, [_rdata length] -  ((NSUInteger) readParseOffset) };
+				NSLog(@"range start: %d, range length: %d", r.location, r.length);
+				[_rdata setData:[_rdata subdataWithRange:r]];
+				readParseOffset = 0;
+				bytesRead = [NSNumber numberWithInt:r.length];
+				NSLog(@"Data only partially handled, %d bytes remaining: \"%@\"", [bytesRead intValue], [[NSString alloc] initWithData:_rdata encoding:NSISOLatin1StringEncoding] );
+				[self treatReadBuffer];
+			} else {
+				[_rdata setLength:0];
+				bytesRead = [NSNumber numberWithInt:0];
+				NSLog(@"Data handled, clearing buffer.");
+			}
+		} else {
+			NSLog(@"Data not handled, retaining buffer to get more data.");
+		}
+	} else {
+		NSLog(@"incomplete line received");
+	}
+	
+}
+
 
 - (NSString*)readHollerith:(NSData*)data  {
 	Hollerith* h = [Hollerith hollerithFromData:data offset:readParseOffset];
@@ -336,6 +346,43 @@
 	return YES;
 }
 
+- (BOOL)handleAsyncMessage:(NSData*)data {
+	int startOffset = readParseOffset;
+	int numparameters = [self parseRpcNum:data];
+	readParseOffset++; // ' '
+	KomInt* msgnumToken = [KomInt intFromData:data offset:readParseOffset];
+	if (msgnumToken == nil) {
+		return NO;
+	}
+	readParseOffset += [msgnumToken length]+1;
+	int msgnum = [msgnumToken intValue];
+	NSLog(@"async message %d with %d parameters", msgnum, numparameters);	
+	if (msgnum == KOM_async_send_message) {
+		readParseOffset++;
+		KomToken* recipientToken = [KomInt tokenFromData:data readOffset:readParseOffset];
+		if (recipientToken == nil) {
+			readParseOffset = startOffset;
+			return NO;
+		}
+		readParseOffset += [recipientToken length]+1;
+		KomToken* senderToken = [KomInt tokenFromData:data readOffset:readParseOffset];
+		if (senderToken == nil) {
+			readParseOffset = startOffset;
+			return NO;
+		}
+		readParseOffset += [senderToken length]+1;
+		Hollerith* message = [Hollerith hollerithFromData:data offset:readParseOffset];
+		if (message == nil) {
+			readParseOffset = startOffset;
+			return NO;
+		}
+		readParseOffset += [message length];
+		return YES;
+	}
+	NSLog(@"Unhandled async message %d", msgnum);
+	return NO;
+}
+
 - (BOOL)handleRpcReply:(BOOL)wasSuccessful requestData:(NSData*)data {
 	int seqno = [self parseRpcNum:data];
 	NSLog(@"Handling reply for RPC request #%d (%s)", seqno, wasSuccessful ? "successful" : "failed");
@@ -353,7 +400,9 @@
 					NSLog(@"Client version sent, asking for a text");
 					[self getText:18475754]; //a big text: 76232, a small text: 18475754
 					[self getText:76232]; //a big text: 76232, a small text: 18475754
-
+					NSMutableArray* acceptedAsyncs = [NSMutableArray new];
+					[acceptedAsyncs addObject:[KomInt intFromInt:KOM_async_send_message]]; // async-send-message
+					[self acceptAsync:acceptedAsyncs];
 					
 				} else {
 					NSLog(@"Login failed!");

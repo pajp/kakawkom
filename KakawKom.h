@@ -7,7 +7,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
-
+#include "Hollerith.h"
+#include "KomArray.h"
+#include "KomInt.h"
 
 // status of the protocol
 #define KOM_DISCONNECTED		0
@@ -22,6 +24,9 @@
 #define KOM_login				62
 #define KOM_set_client_version	69
 #define KOM_accept_async		80
+
+#define KOM_async_send_message	12
+
 
 
 @interface KakawKom : NSObject <NSStreamDelegate> {
@@ -58,7 +63,9 @@
 - (int)rpcSend:(int)call parameters:(NSData*)parameters;
 - (int)parseRpcNum:(NSData *) data;
 - (BOOL)handleRpcReply:(BOOL)result requestData:(NSData*)data;
+- (BOOL)handleAsyncMessage:(NSData *)data;
 - (void)separator:(NSData *)data;
 - (void)sdcat:(NSMutableData *)data asciiString:(NSString *)string;
+- (void)treatReadBuffer;
 
 @end

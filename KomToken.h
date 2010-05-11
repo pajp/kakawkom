@@ -15,5 +15,6 @@
 + (KomToken*)tokenFromData:(NSData*) data readOffset:(int)offset;
 - (id) initWithData:(NSData*)d;
 - (NSData*) data;
-
+- (void) setData:(NSData *)d;
+- (int) length;
 @end
