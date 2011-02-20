@@ -298,9 +298,9 @@
 		}
 		if (handled) {
 			if (readParseOffset < [_rdata length]-1) {
-				NSLog(@"readParseOffset: %d [_rdata length]: %d", readParseOffset, [_rdata length]);
+				NSLog(@"readParseOffset: %d [_rdata length]: %lu", readParseOffset, [_rdata length]);
 				NSRange r = { readParseOffset, [_rdata length] -  ((NSUInteger) readParseOffset) };
-				NSLog(@"range start: %d, range length: %d", r.location, r.length);
+				NSLog(@"range start: %lu, range length: %lu", r.location, r.length);
 				[_rdata setData:[_rdata subdataWithRange:r]];
 				readParseOffset = 0;
 				bytesRead = [NSNumber numberWithInt:r.length];
