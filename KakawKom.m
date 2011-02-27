@@ -9,17 +9,9 @@
 #import "KakawKom.h"
 
 @implementation KakawKom
-
-- (id) initWithUser:(int) u password:(NSString*) p {
-	self = [super init];
-	if (self) {
-		userId = u;
-		password = p;
-		[self init];		
-	}
-	return self;
-}
-
+@synthesize userId;
+@synthesize password;
+@synthesize loggedIn;
 - (id) init {
 	self = [super init];
     if (self) {
@@ -396,10 +388,8 @@
 			case KOM_login:
 				if (wasSuccessful) {
 					NSLog(@"Login OK, sending client version");
+                    self.loggedIn = YES;
 					[self setClientVersion:@"Komkaw Cocoa OS X" version:@"0.0"];
-					NSLog(@"Client version sent, asking for a text");
-					[self getText:18475754]; //a big text: 76232, a small text: 18475754
-					[self getText:76232]; //a big text: 76232, a small text: 18475754
 					NSMutableArray* acceptedAsyncs = [NSMutableArray new];
 					[acceptedAsyncs addObject:[KomInt intFromInt:KOM_async_send_message]]; // async-send-message
 					[self acceptAsync:acceptedAsyncs];

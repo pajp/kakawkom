@@ -41,8 +41,9 @@
 	NSMutableDictionary* pendingCalls;
 	
 	NSNumber* bytesRead;
-	int userId;
-	NSString* password;
+    int userId;
+    NSString* password;
+    BOOL loggedIn;
 	
 	int eventCount;
 	
@@ -56,7 +57,10 @@
 	BOOL canWrite;
 }
 
-- (id)initWithUser:(int)u password:(NSString *)p;
+@property BOOL loggedIn;
+@property (assign) int userId;
+@property (assign) NSString* password;
+
 - (void)login;
 - (BOOL)send;
 - (void)logData:(NSData *)data;
