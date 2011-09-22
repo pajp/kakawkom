@@ -14,7 +14,7 @@
 @synthesize loggedIn;
 - (id) init {
 	self = [super init];
-    if (self) {
+	if (self) {
 		callSequence = eventCount = 0;
 		readParseOffset = byteIndex = 0;
 		canWrite = NO;
